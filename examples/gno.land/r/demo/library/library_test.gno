@@ -18,14 +18,15 @@ func contains(str, substr string) bool {
 	return false
 }
 
-// func TestRender(t *testing.T) {
-// 	library.AddBook("101", "Realm Book", "Realm Author")
-// 	output := Render("some path or filter")
-// 	expectedOutputContains := "Welcome to the library"
-// 	if !contains(output, expectedOutputContains) {
-// 		t.Errorf("Render output does not contain expected text. Expected to find '%s', got '%s'", expectedOutputContains, output)
-// 	}
-// }
+func TestRender(t *testing.T) {
+	var l library.Library
+	l.AddBook("101", "Realm Book", "Realm Author")
+	output := Render("some path or filter")
+	expectedOutputContains := "Welcome to the library"
+	if !contains(output, expectedOutputContains) {
+		t.Errorf("Render output does not contain expected text. Expected to find '%s', got '%s'", expectedOutputContains, output)
+	}
+}
 
 func TestAddBookThroughRealm(t *testing.T) {
 	message := AddBook("202", "Realm Book 2", "Realm Author 2")
@@ -43,8 +44,9 @@ func TestAddBookThroughRealm(t *testing.T) {
 }
 
 func TestBorrowBookThroughRealm(t *testing.T) {
-	library.AddBook("303", "Realm Book 3", "Realm Author 3")
-	message := BorrowBook("303", "g1testaddress")
+	var l library.Library
+	l.AddBook("303", "Realm Book 3", "Realm Author 3")
+	message := l.BorrowBook("303", "g1testaddress") // Ensure it operates on the instance `l`
 	expectedMessage := "Book borrowed successfully"
 	if message != expectedMessage {
 		t.Errorf("Unexpected message from BorrowBook. Expected '%s', got '%s'", expectedMessage, message)
@@ -52,11 +54,15 @@ func TestBorrowBookThroughRealm(t *testing.T) {
 }
 
 func TestReturnBookThroughRealm(t *testing.T) {
-	library.AddBook("404", "Realm Book 4", "Realm Author 4")
-	library.BorrowBook("404", "g1testaddress")
-	message := ReturnBook("404")
+	var l library.Library
+	l.AddBook("404", "Realm Book 4", "Realm Author 4")
+	messageBorrow := l.BorrowBook("404", "g1testaddress") // Ensure borrowing before returning
+	if messageBorrow != "Book borrowed successfully" {
+		t.Fatalf("Setup failed: borrowing the book failed.")
+	}
+	messageReturn := l.ReturnBook("404")
 	expectedMessage := "Book returned successfully"
-	if message != expectedMessage {
-		t.Errorf("Unexpected message from ReturnBook. Expected '%s', got '%s'", expectedMessage, message)
+	if messageReturn != expectedMessage {
+		t.Errorf("Unexpected message from ReturnBook. Expected '%s', got '%s'", expectedMessage, messageReturn)
 	}
 }
