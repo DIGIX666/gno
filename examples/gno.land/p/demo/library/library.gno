@@ -59,11 +59,11 @@ func (l *Library) ReturnBook(bookID string) string {
 	return "Book not found"
 }
 
-func (l *Library) CheckBookStatus(bookID string) (string, std.Address) {
-	for _, book := range l.books {
-		if book.ID == bookID {
-			return book.Status, book.Borrower
-		}
-	}
-	return "Book not found", ""
-}
+// func (l *Library) CheckBookStatus(bookID string) (string, std.Address) {
+// 	for _, book := range l.books {
+// 		if book.ID == bookID {
+// 			return book.Status, book.Borrower
+// 		}
+// 	}
+// 	return "Book not found", ""
+// }
