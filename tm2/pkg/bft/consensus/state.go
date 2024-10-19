@@ -73,7 +73,7 @@ func (ti *timeoutInfo) GetHRS() cstypes.HRS {
 	if ti == nil {
 		return cstypes.HRS{}
 	} else {
-		return cstypes.HRS{ti.Height, ti.Round, ti.Step}
+		return cstypes.HRS{Height: ti.Height, Round: ti.Round, Step: ti.Step}
 	}
 }
 
@@ -754,13 +754,13 @@ func (cs *ConsensusState) handleTimeout(ti timeoutInfo, rs cstypes.RoundState) {
 	case cstypes.RoundStepNewRound:
 		cs.enterPropose(ti.Height, 0)
 	case cstypes.RoundStepPropose:
-		cs.evsw.FireEvent(cstypes.EventTimeoutPropose{cs.RoundState.GetHRS()})
+		cs.evsw.FireEvent(cstypes.EventTimeoutPropose{HRS: cs.RoundState.GetHRS()})
 		cs.enterPrevote(ti.Height, ti.Round)
 	case cstypes.RoundStepPrevoteWait:
-		cs.evsw.FireEvent(cstypes.EventTimeoutWait{cs.RoundState.GetHRS()})
+		cs.evsw.FireEvent(cstypes.EventTimeoutWait{HRS: cs.RoundState.GetHRS()})
 		cs.enterPrecommit(ti.Height, ti.Round)
 	case cstypes.RoundStepPrecommitWait:
-		cs.evsw.FireEvent(cstypes.EventTimeoutWait{cs.RoundState.GetHRS()})
+		cs.evsw.FireEvent(cstypes.EventTimeoutWait{HRS: cs.RoundState.GetHRS()})
 		cs.enterPrecommit(ti.Height, ti.Round)
 		cs.enterNewRound(ti.Height, ti.Round+1)
 	default:
@@ -1134,7 +1134,7 @@ func (cs *ConsensusState) enterPrecommit(height int64, round int) {
 	}
 
 	// At this point +2/3 prevoted for a particular block or nil.
-	cs.evsw.FireEvent(cstypes.EventPolka{cs.RoundState.GetHRS()})
+	cs.evsw.FireEvent(cstypes.EventPolka{HRS: cs.RoundState.GetHRS()})
 
 	// the latest POLRound should be this round.
 	polRound, _ := cs.Votes.POLInfo()
@@ -1151,7 +1151,7 @@ func (cs *ConsensusState) enterPrecommit(height int64, round int) {
 			cs.LockedRound = -1
 			cs.LockedBlock = nil
 			cs.LockedBlockParts = nil
-			cs.evsw.FireEvent(cstypes.EventUnlock{cs.RoundState.GetHRS()})
+			cs.evsw.FireEvent(cstypes.EventUnlock{HRS: cs.RoundState.GetHRS()})
 		}
 		cs.signAddVote(types.PrecommitType, nil, types.PartSetHeader{})
 		return
@@ -1163,7 +1163,7 @@ func (cs *ConsensusState) enterPrecommit(height int64, round int) {
 	if cs.LockedBlock.HashesTo(blockID.Hash) {
 		logger.Info("enterPrecommit: +2/3 prevoted locked block. Relocking")
 		cs.LockedRound = round
-		cs.evsw.FireEvent(cstypes.EventRelock{cs.RoundState.GetHRS()})
+		cs.evsw.FireEvent(cstypes.EventRelock{HRS: cs.RoundState.GetHRS()})
 		cs.signAddVote(types.PrecommitType, blockID.Hash, blockID.PartsHeader)
 		return
 	}
@@ -1178,7 +1178,7 @@ func (cs *ConsensusState) enterPrecommit(height int64, round int) {
 		cs.LockedRound = round
 		cs.LockedBlock = cs.ProposalBlock
 		cs.LockedBlockParts = cs.ProposalBlockParts
-		cs.evsw.FireEvent(cstypes.EventLock{cs.RoundState.GetHRS()})
+		cs.evsw.FireEvent(cstypes.EventLock{HRS: cs.RoundState.GetHRS()})
 		cs.signAddVote(types.PrecommitType, blockID.Hash, blockID.PartsHeader)
 		return
 	}
@@ -1194,7 +1194,7 @@ func (cs *ConsensusState) enterPrecommit(height int64, round int) {
 		cs.ProposalBlock = nil
 		cs.ProposalBlockParts = types.NewPartSetFromHeader(blockID.PartsHeader)
 	}
-	cs.evsw.FireEvent(cstypes.EventUnlock{cs.RoundState.GetHRS()})
+	cs.evsw.FireEvent(cstypes.EventUnlock{HRS: cs.RoundState.GetHRS()})
 	cs.signAddVote(types.PrecommitType, nil, types.PartSetHeader{})
 }
 
@@ -1613,7 +1613,7 @@ func (cs *ConsensusState) addVote(vote *types.Vote, peerID p2p.ID) (added bool, 
 		return
 	}
 
-	cs.evsw.FireEvent(types.EventVote{vote})
+	cs.evsw.FireEvent(types.EventVote{Vote: vote})
 
 	switch vote.Type {
 	case types.PrevoteType:
@@ -1642,7 +1642,7 @@ func (cs *ConsensusState) addVote(vote *types.Vote, peerID p2p.ID) (added bool, 
 				cs.LockedRound = -1
 				cs.LockedBlock = nil
 				cs.LockedBlockParts = nil
-				cs.evsw.FireEvent(cstypes.EventUnlock{cs.RoundState.GetHRS()})
+				cs.evsw.FireEvent(cstypes.EventUnlock{HRS: cs.RoundState.GetHRS()})
 			}
 
 			// Update Valid* if we can.
